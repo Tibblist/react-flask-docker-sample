@@ -1,58 +1,100 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css'
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import Grid from "@material-ui/core/Grid";
+import {
+  Button,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  TextField,
+  Typography,
+} from "@material-ui/core";
+import axios from "axios";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      items: [],
-    };
-  }
+const App = (props) => {
+  const [listItems, setListItems] = useState(["test"]);
 
-  componentDidMount() {
-    fetch("http://localhost:5000/api/v1.0/test")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            isLoaded: true,
-            items: result.items,
-          });
-        },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error,
-          });
-        }
-      )
-  }
+  useEffect(() => {
+    //Fetch list items
+    axios.get("/items/list").then((resp) => {
+      setListItems(resp.data);
+    });
+  }, []);
 
-  render() {
-    const {error, isLoaded, items} = this.state;
-    if (error) {
-      return <div>Error: {error.message}</div>;
-    } else if (!isLoaded) {
-      return <div>Loading...</div>;
-    } else {
-      return (
-        <ul>
-          {items.map(item => (
-            <li key={item.name}>
-              {item.name} {item.price}
-            </li>
-          ))}
-        </ul>
-      );
-    }
-  }
-}
+  const createNewItem = () => {
+    let newList = Array.from(listItems);
+    newList.push("");
+    setListItems(newList);
+  };
 
+  const changeItem = (idx, event) => {
+    let newList = Array.from(listItems);
+    newList[idx] = event.target.value;
+    setListItems(newList);
+  };
 
-ReactDOM.render(
-  <App/>,
-  document.getElementById('root')
-);
+  const deleteItem = (idx) => {
+    let newList = Array.from(listItems);
+    newList.splice(idx, 1);
+    setListItems(newList);
+  };
+
+  const saveItems = () => {
+    axios.post("/items/save", { items: listItems });
+  };
+
+  return (
+    <Grid container direction="column">
+      <Grid item>
+        <Typography variant="h2" style={{ textAlign: "center" }}>
+          List of things
+        </Typography>
+      </Grid>
+      <List
+        style={{
+          width: "25%",
+          margin: "auto",
+          marginTop: 25,
+        }}
+      >
+        {listItems.map((item, idx) => {
+          return (
+            <ListItem style={{ border: "black 1px solid", marginTop: 5 }}>
+              <TextField
+                value={item}
+                onChange={(event) => {
+                  changeItem(idx, event);
+                }}
+              />
+              <ListItemSecondaryAction>
+                <Button
+                  color="secondary"
+                  onClick={() => {
+                    deleteItem(idx);
+                  }}
+                >
+                  DELETE
+                </Button>
+              </ListItemSecondaryAction>
+            </ListItem>
+          );
+        })}
+      </List>
+      <Grid
+        container
+        direction="row"
+        justify="center"
+        style={{ marginTop: 25 }}
+      >
+        <Button style={{ marginRight: 50 }} onClick={createNewItem}>
+          CREATE NEW
+        </Button>
+        <Button color="primary" variant="contained" onClick={saveItems}>
+          SAVE
+        </Button>
+      </Grid>
+    </Grid>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById("root"));

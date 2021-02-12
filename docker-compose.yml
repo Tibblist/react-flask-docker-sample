@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   api:
@@ -21,9 +21,19 @@ services:
     environment:
       - NODE_ENV=development
     ports:
-      - '3000:3000'
+      - "3000:3000"
     depends_on:
       - api
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
 
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 volumes:
   node-modules:
