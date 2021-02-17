@@ -32,7 +32,7 @@ const App = (props) => {
   };
 
   const deleteItem = async (idx) => {
-    await axios.delete("/items/delete", listItems[idx]); //pass whole object to verify it hasn't been changed since last pulled updates so you don't delete others work
+    await axios.delete("/items/delete", { data: listItems[idx] }); //pass whole object to verify it hasn't been changed since last pulled updates so you don't delete others work
     getItems();
   };
 

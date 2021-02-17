@@ -24,7 +24,7 @@ class ListModel(db.Model):
 
 @app.route('/items/list', methods=['GET'])
 def list_items():
-    items = ListModel.query.all()
+    items = ListModel.query.order_by(ListModel.id).all()
     results = [
         {
             "id": item.id,
