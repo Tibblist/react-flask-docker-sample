@@ -12,35 +12,39 @@ import {
 import axios from "axios";
 
 const App = (props) => {
-  const [listItems, setListItems] = useState(["test"]);
+  const [listItems, setListItems] = useState([]);
 
-  useEffect(() => {
-    //Fetch list items
+  const getItems = () => {
     axios.get("/items/list").then((resp) => {
       setListItems(resp.data);
     });
-  }, []);
-
-  const createNewItem = () => {
-    let newList = Array.from(listItems);
-    newList.push("");
-    setListItems(newList);
   };
+
+  useEffect(() => {
+    //Fetch list items
+    getItems();
+  }, []);
 
   const changeItem = (idx, event) => {
     let newList = Array.from(listItems);
-    newList[idx] = event.target.value;
+    newList[idx].name = event.target.value;
     setListItems(newList);
   };
 
-  const deleteItem = (idx) => {
-    let newList = Array.from(listItems);
-    newList.splice(idx, 1);
-    setListItems(newList);
+  const deleteItem = async (idx) => {
+    await axios.delete("/items/delete", listItems[idx]); //pass whole object to verify it hasn't been changed since last pulled updates so you don't delete others work
+    getItems();
   };
 
-  const saveItems = () => {
-    axios.post("/items/save", { items: listItems });
+  const saveItem = async (idx) => {
+    await axios.post("/items/update", listItems[idx]);
+    getItems();
+  };
+
+  const createItem = async () => {
+    console.log("Creating item");
+    await axios.post("/items/create");
+    getItems();
   };
 
   return (
@@ -61,9 +65,12 @@ const App = (props) => {
           return (
             <ListItem style={{ border: "black 1px solid", marginTop: 5 }}>
               <TextField
-                value={item}
+                value={item.name}
                 onChange={(event) => {
                   changeItem(idx, event);
+                }}
+                onBlur={() => {
+                  saveItem(idx);
                 }}
               />
               <ListItemSecondaryAction>
@@ -86,11 +93,8 @@ const App = (props) => {
         justify="center"
         style={{ marginTop: 25 }}
       >
-        <Button style={{ marginRight: 50 }} onClick={createNewItem}>
+        <Button style={{ marginRight: 50 }} onClick={createItem}>
           CREATE NEW
-        </Button>
-        <Button color="primary" variant="contained" onClick={saveItems}>
-          SAVE
         </Button>
       </Grid>
     </Grid>
